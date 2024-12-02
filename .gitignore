@@ -1,0 +1,10 @@
+markdown
+Copy code
+*.log
+*.pyc
+_pycache_/
+.vagrant/
+.env
+*.box
+*.iso
+*.vdi
