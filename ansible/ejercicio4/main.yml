@@ -33,3 +33,11 @@
     - enable node_exporter
     - restart node_exporter
     - status node_explorer
+
+- name: Monitorear con Prometheus
+  nano: 
+    name: /etc/prometheus/prometheus.yml
+  jobname:
+    static_configs:
+    # - targets: ["<IP_ADDRESS>:9100"]
+      - targets: ["localhost:9100"] 
