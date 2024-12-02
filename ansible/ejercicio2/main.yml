@@ -1,0 +1,9 @@
+---
+- name: Instalar ngix
+  apt:
+    name: ngix
+    update_cache: yes
+    state: present
+
+server:
+- name: 

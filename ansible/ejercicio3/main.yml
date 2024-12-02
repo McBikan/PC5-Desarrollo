@@ -22,3 +22,25 @@
   command: python3 -c "import flask"
   changed_when: false
   failed_when: false
+
+- name: Instalar gunicorn usando el interpreter de python
+  pip:
+    name: gunicorn
+    executable: /usr/bin/pip3
+
+- name: Verificar que gunicorn está instalado
+  command: python3 -c "import gunicorn"
+  changed_when: false
+  failed_when: false
+
+- name: Copiar directorio y copiar la aplicación flask
+  file:
+    path: /opt/ejercicio3
+    state: directory
+    mode: '0750'
+  file:
+    path: /opt/ingenieria/flask
+    state: touch
+    mode: '0770'
+
+

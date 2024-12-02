@@ -1,5 +1,5 @@
 ---
-- name: Reiniciar servidor SSH
+- name: Reiniciar servidor SSL
   service:
-    name: sshd
+    name: ssl
     state: restarted
