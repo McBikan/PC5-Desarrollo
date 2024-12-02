@@ -1,5 +1,5 @@
 ---
-- name: Reiniciar servidor SSL
+- name: Reiniciar servidor SSl
   service:
     name: ssl
     state: restarted

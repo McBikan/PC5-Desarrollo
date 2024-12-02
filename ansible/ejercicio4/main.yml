@@ -1,0 +1,35 @@
+---
+- name: Instalar prometheus
+  apt:
+    name: prometheus
+    update_cache: yes
+    state: present
+
+- name: Configurar Prometheus
+  server:
+    name: localhost
+    port: 9090
+
+- name: Instalar Node Exporter
+  wget: 
+    name: https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
+    update_cache: yes 
+    state: present
+  tar:
+    name: xzf node_exporter-1.7.0.linux-amd64.tar.gz
+    update_cache: yes
+    state: present
+  rm: 
+    name: -rf node_exporter-1.7.0.linux-amd64.tar.gz
+    update_cache: yes
+    state: present
+  mv:
+    name: node_exporter-1.7.0.linux-amd64 /etc/node_exporter   
+  nano:
+    name: /etc/systemd/system/node_exporter.service
+  systemctl:
+    name:
+    - daemon-reload
+    - enable node_exporter
+    - restart node_exporter
+    - status node_explorer

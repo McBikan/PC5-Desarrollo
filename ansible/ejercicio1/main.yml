@@ -7,6 +7,12 @@
           - curl
         state: present
 
+- name: Actualizar zona horaria usando NTP
+      apt:
+         update_cache: yes
+         name: ntpdate 0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org 0.south-america.pool.ntp.org
+         state: present
+
 - name: Crear el usuario 'devuser'
   user:
     name: devuser
