@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
     # Customize the amount of memory on the VM:
     vb.memory = "2048"
     vb.cpus = 2
-    vb.name = "vm_ssh_seguridad"
+    vb.name = "vm_pc5_desarrollo"
   end
 
   # Enable provisioning with Ansible
