@@ -1,0 +1,24 @@
+---
+- name: Actualizar la lista de paquetes
+  apt:
+    update_cache: yes
+
+- name: Instalar pip si no está disponible
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Actualizar pip a la última versión
+  command: python3 -m pip install --upgrade pip
+  args:
+    creates: /usr/local/lib/python3.8/dist-packages/pip
+
+- name: Instalar flask usando el interpreter de python
+  pip:
+    name: flask
+    executable: /usr/bin/pip3
+
+- name: Verificar que flask está instalado
+  command: python3 -c "import flask"
+  changed_when: false
+  failed_when: false

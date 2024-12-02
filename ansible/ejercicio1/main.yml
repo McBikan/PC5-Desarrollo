@@ -1,0 +1,25 @@
+---
+- name: Actualizar e instalar paquetes del sistema
+      apt:
+        update_cache: yes
+        name:
+          - git
+          - curl
+        state: present
+
+- name: Crear el usuario 'devuser'
+  user:
+    name: devuser
+    shell: /bin/bash
+    password: "{{ 'brian' | password_hash('sha512') }}"
+
+- name: Asegurar que el grupo 'admin' exista
+  group:
+    name: admin
+    state: present
+
+- name: Asignar 'devuser' al grupo 'admin'
+  user:
+    name: devuser
+    groups: admin
+    append: yes

@@ -21,8 +21,8 @@ Vagrant.configure("2") do |config|
   # Configure the provider (VirtualBox)
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
-    vb.memory = "4096"
-    vb.cpus = 4
+    vb.memory = "2048"
+    vb.cpus = 2
     vb.name = "vm_ssh_seguridad"
   end
 
