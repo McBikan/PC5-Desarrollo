@@ -1,5 +1,5 @@
 ---
-- name: Reiniciar servidor SSl
+- name: Reiniciar Nginx
   service:
-    name: ssl
+    name: nginx
     state: restarted

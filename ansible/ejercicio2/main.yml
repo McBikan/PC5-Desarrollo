@@ -1,9 +1,62 @@
 ---
-- name: Instalar ngix
+- name: Instalar Nginx
   apt:
-    name: ngix
+    name: nginx
     update_cache: yes
     state: present
 
-server:
-- name: 
+- name: Crear directorio para certificados SSL
+  file:
+    path: /etc/nginx/ssl
+    state: directory
+    mode: '0755'
+  
+- name: Generar clave privada SSL
+  command: openssl genrsa -out /etc/nginx/ssl/nginx.key 2048
+  args:
+    creates: /etc/nginx/ssl/nginx.key
+
+- name: Generar certificado SSL autofirmado
+  command: >
+    openssl req -new -x509 
+    -key /etc/nginx/ssl/nginx.key
+    -out /etc/nginx/ssl/nginx.crt 
+    -days 365
+    -subj "/C=PE/ST=Lima/L=Lima/O=MyOrg/CN=localhost"
+  args:
+    creates: /etc/nginx/ssl/nginx.crt
+
+- name: Copiar configuración de Nginx con SSL
+  template:
+    src: templates/nginx_ssl.conf.j2
+    dest: /etc/nginx/sites-available/default
+  notify: Reiniciar Nginx
+
+- name: Instalar UFW
+  apt:
+    name: ufw
+    state: present
+
+- name: Permitir tráfico SSH
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+
+- name: Permitir tráfico HTTP
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+
+- name: Permitir tráfico HTTPS
+  ufw:
+    rule: allow
+    port: 443
+    proto: tcp
+
+- name: Activar UFW
+  ufw:
+    state: enabled
+    enabled: yes
+

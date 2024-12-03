@@ -1,17 +1,26 @@
 ---
 - name: Actualizar e instalar paquetes del sistema
-      apt:
-        update_cache: yes
-        name:
-          - git
-          - curl
-        state: present
+  apt:
+    update_cache: yes
+    name:
+      - git
+      - curl
+    state: present
 
-- name: Actualizar zona horaria usando NTP
-      apt:
-         update_cache: yes
-         name: ntpdate 0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org 0.south-america.pool.ntp.org
-         state: present
+- name: Configurar locales a 'es_PE.UTF-8'
+  locale_gen:
+    name: 'es_PE.UTF-8'
+    state: present
+
+- name: Establecer locales del sistema
+  lineinfile:
+    path: /etc/default/locale
+    regexp: '^LANG'
+    line: 'LANG="es_PE.UTF-8"'
+
+- name: Configurar zona horaria a 'America/Lima'
+  timezone:
+    name: America/Lima
 
 - name: Crear el usuario 'devuser'
   user:
