@@ -1,0 +1,105 @@
+---
+- name: Configurar PostgreSQL Master y Slave
+  hosts: postgresql_servers
+  become: yes
+  tasks:
+    - name: Instalar PostgreSQL en el nodo Master
+      apt:
+        name: postgresql
+        state: present
+
+    - name: Configurar el archivo postgresql.conf en el nodo Master
+      lineinfile:
+        path: /etc/postgresql/12/main/postgresql.conf
+        regexp: '^#?listen_addresses'
+        line: "listen_addresses = '*'"
+
+    - name: Habilitar la replicación en el nodo Master
+      lineinfile:
+        path: /etc/postgresql/12/main/pg_hba.conf
+        regexp: '^#?host replication'
+        line: "host replication all 0.0.0.0/0 md5"
+
+    - name: Reiniciar PostgreSQL en el nodo Master
+      systemd:
+        name: postgresql
+        state: restarted
+
+    - name: Instalar PostgreSQL en el nodo Slave
+      apt:
+        name: postgresql
+        state: present
+
+    - name: Configurar el archivo postgresql.conf en el nodo Slave
+      lineinfile:
+        path: /etc/postgresql/12/main/postgresql.conf
+        regexp: '^#?listen_addresses'
+        line: "listen_addresses = '*'"
+
+    - name: Configurar la replicación en el nodo Slave
+      lineinfile:
+        path: /etc/postgresql/12/main/pg_hba.conf
+        regexp: '^#?host replication'
+        line: "host replication all 0.0.0.0/0 md5"
+
+    - name: Clonar el nodo Slave desde el nodo Master
+      command: >
+        pg_basebackup -h {{ master_host }} -D /var/lib/postgresql/12/main -U postgres -v -P --wal-method=stream
+
+    - name: Crear el archivo recovery.conf en el nodo Slave
+      copy:
+        dest: /var/lib/postgresql/12/main/recovery.conf
+        content: |
+          standby_mode = 'on'
+          primary_conninfo = 'host={{ master_host }} port=5432 user=postgres password={{ master_password }}'
+          trigger_file = '/tmp/failover.trigger'
+    
+    - name: Reiniciar PostgreSQL en el nodo Slave
+      systemd:
+        name: postgresql
+        state: restarted
+
+- name: Copiar scripts de backup y restauración
+  copy:
+    src: templates/backup.sh
+    dest: /usr/local/bin/backup.sh
+    mode: '0755'
+
+- name: Copiar script de restauración
+  copy:
+    src: templates/restore.sh
+    dest: /usr/local/bin/restore.sh
+    mode: '0755'
+
+- name: Programar el backup diario
+  cron:
+    name: "Backup de base de datos PostgreSQL"
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/bin/backup.sh"
+
+- name: Instalar Keepalived
+  apt:
+    name: keepalived
+    state: present
+
+- name: Configurar Keepalived para alta disponibilidad
+  hosts: all
+  become: yes
+  vars:
+    interface: eth0
+    virtual_router_id: 51
+    priority: 101
+    auth_pass: 1111
+    virtual_ip: 192.168.1.100
+
+  tasks:
+    - name: Copiar el archivo de configuración keepalived.conf desde la plantilla
+      template:
+        src: keepalived.conf.j2
+        dest: /etc/keepalived/keepalived.conf
+        mode: '0644'
+      notify:
+        - Reiniciar Keepalived
+    
+  
