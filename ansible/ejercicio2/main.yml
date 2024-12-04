@@ -27,9 +27,11 @@
     creates: /etc/nginx/ssl/nginx.crt
 
 - name: Copiar configuración de Nginx con SSL
-  template:
-    src: templates/nginx_ssl.conf.j2
+  copy:
+    src: templates/nginx_ssl.conf.j2 
     dest: /etc/nginx/sites-available/default
+    remote_src: no
+    mode: '0644'
   notify: Reiniciar Nginx
 
 - name: Instalar UFW
@@ -58,5 +60,4 @@
 - name: Activar UFW
   ufw:
     state: enabled
-    enabled: yes
 

@@ -1,0 +1,35 @@
+---
+- name: Instalar dependencias para pruebas
+  pip:
+    name: pytest
+    state: present
+
+- name: Copiar archivos de prueba al directorio adecuado
+  copy:
+    src: ./tests/
+    dest: /vagrant/tests/
+    mode: '0644'
+
+- name: Ejecutar pruebas automatizadas con Pytest
+  shell: |
+    cd /vagrant/tests && pytest --maxfail=1 --disable-warnings -q
+  register: pytest_output
+  ignore_errors: yes
+
+- name: Guardar los resultados de las pruebas
+  copy:
+    content: "{{ pytest_output.stdout }}"
+    dest: /vagrant/test_reports/results.txt
+    mode: '0644'
+
+- name: Enviar notificación si las pruebas fallan
+  mail:
+    to: "bhuamang@uni.pe"
+    subject: "Fallos en las pruebas automatizadas"
+    body: "Las pruebas automatizadas han fallado. Revisa los resultados en /vagrant/test_reports/results.txt"
+  when: pytest_output.rc != 0
+
+- name: Detener el despliegue si las pruebas fallan
+  fail:
+    msg: "Las pruebas automatizadas fallaron, deteniendo el despliegue."
+  when: pytest_output.rc != 0

@@ -60,7 +60,8 @@
     - 5000
     - 5001
     - 5002
-  notify: Reiniciar Nginx
+  vars:
+    port: "{{ item }}" 
 
 - name: Iniciar y habilitar los servicios Flask
   systemd:
