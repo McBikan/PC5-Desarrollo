@@ -18,29 +18,67 @@
     name: flask
     executable: /usr/bin/pip3
 
-- name: Verificar que flask está instalado
+- name: Verificar que Flask está instalado
   command: python3 -c "import flask"
+  register: flask_installed
+  failed_when: flask_installed.rc != 0
   changed_when: false
-  failed_when: false
 
-- name: Instalar gunicorn usando el interpreter de python
+- name: Instalar Gunicorn usando el interpreter de python
   pip:
     name: gunicorn
     executable: /usr/bin/pip3
 
-- name: Verificar que gunicorn está instalado
+- name: Verificar que Gunicorn está instalado
   command: python3 -c "import gunicorn"
   changed_when: false
   failed_when: false
 
-- name: Copiar directorio y copiar la aplicación flask
+- name: Verificar que Gunicorn está instalado
+  command: python3 -c "import gunicorn"
+  register: gunicorn_installed
+  failed_when: gunicorn_installed.rc != 0
+  changed_when: false
+
+- name: Crear directorio para la aplicación Flask
   file:
     path: /opt/ejercicio3
     state: directory
     mode: '0750'
-  file:
-    path: /opt/ingenieria/flask
-    state: touch
-    mode: '0770'
+
+- name: Copiar la aplicación Flask
+  copy:
+    src: templates/app.py
+    dest: /opt/ejercicio3/app.py
+    mode: '0755'
+
+- name: Crear archivo de servicio systemd para Flask en el puerto {{ item }}
+  template:
+    src: templates/flask_service.j2
+    dest: /etc/systemd/system/flask_{{ item }}.service
+  loop:
+    - 5000
+    - 5001
+    - 5002
+  notify: Reiniciar Nginx
+
+- name: Iniciar y habilitar los servicios Flask
+  systemd:
+    name: flask_{{ item }}.service
+    state: started
+    enabled: yes
+  loop:
+    - 5000
+    - 5001
+    - 5002
+
+- name: Copiar configuración de Nginx para balanceo de carga
+  template:
+    src: templates/nginx_loadbalancer.conf.j2
+    dest: /etc/nginx/sites-available/default
+  notify: Reiniciar Nginx
+
+
+
 
 

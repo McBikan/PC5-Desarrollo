@@ -1,0 +1,5 @@
+---
+- name: Reiniciar Prometheus
+  systemd:
+    name: prometheus
+    state: restarted

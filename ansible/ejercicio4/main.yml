@@ -10,34 +10,34 @@
     name: localhost
     port: 9090
 
-- name: Instalar Node Exporter
-  wget: 
-    name: https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
-    update_cache: yes 
+- name: Instalar Node Exporter 
+  apt:
+    name: prometheus-node-exporter
     state: present
-  tar:
-    name: xzf node_exporter-1.7.0.linux-amd64.tar.gz
-    update_cache: yes
-    state: present
-  rm: 
-    name: -rf node_exporter-1.7.0.linux-amd64.tar.gz
-    update_cache: yes
-    state: present
-  mv:
-    name: node_exporter-1.7.0.linux-amd64 /etc/node_exporter   
-  nano:
-    name: /etc/systemd/system/node_exporter.service
-  systemctl:
-    name:
-    - daemon-reload
-    - enable node_exporter
-    - restart node_exporter
-    - status node_explorer
 
-- name: Monitorear con Prometheus
-  nano: 
-    name: /etc/prometheus/prometheus.yml
-  jobname:
-    static_configs:
-    # - targets: ["<IP_ADDRESS>:9100"]
-      - targets: ["localhost:9100"] 
+- name: Habilitar y iniciar Node Exporter
+  systemd:
+    name: prometheus-node-exporter
+    state: started
+    enabled: yes
+
+- name: Asegurar que Prometheus esté monitoreando el Node Exporter
+  lineinfile:
+    path: /etc/prometheus/prometheus.yml
+    regexp: '^  - targets:'
+    line: '  - targets: ["localhost:5000", "localhost:9100"]'
+    insertafter: '# scrape_configs'
+    state: present
+  notify:
+    - Reiniciar Prometheus
+
+- name: Instalar Grafana
+  apt:
+    name: grafana
+    state: present
+
+- name: Iniciar y habilitar el servicio Grafana
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
