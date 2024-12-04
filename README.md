@@ -41,7 +41,7 @@ A continuación se presentan las evidencias de la ejecución de `vagrant up`:
 - **Evidencia 3:**
   ![Vagrant Up 2](imagenes/vagrantup2.jpg)
 
-- **Evidencia 3:**
+- **Evidencia 4:**
   ![Vagrant Up 2](imagenes/vagrantup3.jpg)
 
   En total casi 50 tareas realizadas, y faltaría corregir algunas mas
