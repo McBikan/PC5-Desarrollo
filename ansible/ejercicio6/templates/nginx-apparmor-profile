@@ -1,0 +1,29 @@
+#include <tunables/global>
+
+/usr/sbin/nginx {
+  # Capabilities requeridas
+  capability net_bind_service,
+  capability setgid,
+  capability setuid,
+
+  # Acceso a archivos necesarios
+  /usr/sbin/nginx mr,
+  /etc/nginx/** r,
+  /var/www/** r,
+  /var/log/nginx/** rw,
+  /run/nginx.pid rw,
+
+  # Acceso a bibliotecas compartidas
+  /lib/** mr,
+  /usr/lib/** mr,
+
+  # Acceso a sockets
+  network inet stream,
+  network inet6 stream,
+
+  # Denegar acceso a todo lo demás
+  deny /bin/** rwklx,
+  deny /sbin/** rwklx,
+  deny /usr/bin/** rwklx,
+  deny /usr/sbin/** rwklx,
+}

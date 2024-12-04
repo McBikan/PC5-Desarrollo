@@ -1,0 +1,78 @@
+---
+- name: Instalar Lynis
+  apt:
+    name: lynis
+    state: present
+    update_cache: yes
+
+- name: Ejecutar escaneo de seguridad con Lynis
+  command: lynis audit system
+  register: lynis_output
+  ignore_errors: yes
+
+- name: Generar informe del escaneo de Lynis
+  copy:
+    content: "{{ lynis_output.stdout }}"
+    dest: "/var/log/lynis_scan_report.txt"
+    mode: '0644'
+
+- name: Mostrar informe del escaneo de Lynis
+  debug:
+    msg: "{{ lynis_output.stdout }}"
+
+- name: Endurecer configuración de Nginx
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: '^#? server_tokens'
+    line: 'server_tokens off;'
+  notify:
+    - Reiniciar Nginx
+
+- name: Endurecer configuración de SSH
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#? PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify:
+    - Reiniciar SSH
+
+- name: Asegurar permisos del archivo /etc/passwd
+  file:
+    path: /etc/passwd
+    mode: '0644'
+
+- name: Asegurar permisos del archivo /etc/shadow
+  file:
+    path: /etc/shadow
+    mode: '0600'
+
+- name: Instalar AppArmor
+  apt:
+    name: apparmor
+    state: present
+
+- name: Habilitar AppArmor en el sistema
+  command: systemctl enable apparmor
+  ignore_errors: yes
+
+- name: Reiniciar AppArmor
+  command: systemctl restart apparmor
+  ignore_errors: yes
+
+- name: Aplicar perfil AppArmor para Nginx
+  copy:
+    src: templates/nginx-apparmor-profile
+    dest: /etc/apparmor.d/usr.sbin.nginx
+    mode: '0644'
+  notify:
+    - Recargar AppArmor
+
+- name: Configurar política de contraseña
+  lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^#? minlen'
+    line: 'minlen = 12'
+
+- name: Restringir acceso a la cuenta root
+  command: passwd -l root
+

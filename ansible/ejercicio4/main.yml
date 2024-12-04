@@ -5,10 +5,22 @@
     update_cache: yes
     state: present
 
-- name: Configurar Prometheus
-  server:
-    name: localhost
-    port: 9090
+- name: Configurar Prometheus para monitorear Node Exporter y Prometheus
+  lineinfile:
+    path: /etc/prometheus/prometheus.yml
+    regexp: '^# scrape_configs'
+    line: |
+      scrape_configs:
+        - job_name: 'prometheus'
+          static_configs:
+            - targets: ['localhost:9090']
+        - job_name: 'node_exporter'
+          static_configs:
+            - targets: ['localhost:5000', 'localhost:9100']
+    insertafter: '# scrape_configs'
+    state: present
+  notify:
+    - Reiniciar Prometheus
 
 - name: Instalar Node Exporter 
   apt:
@@ -20,16 +32,6 @@
     name: prometheus-node-exporter
     state: started
     enabled: yes
-
-- name: Asegurar que Prometheus esté monitoreando el Node Exporter
-  lineinfile:
-    path: /etc/prometheus/prometheus.yml
-    regexp: '^  - targets:'
-    line: '  - targets: ["localhost:5000", "localhost:9100"]'
-    insertafter: '# scrape_configs'
-    state: present
-  notify:
-    - Reiniciar Prometheus
 
 - name: Instalar Grafana
   apt:

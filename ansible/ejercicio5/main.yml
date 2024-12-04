@@ -60,28 +60,45 @@
         state: restarted
 
 - name: Copiar scripts de backup y restauración
-  copy:
-    src: templates/backup.sh
-    dest: /usr/local/bin/backup.sh
-    mode: '0755'
+  hosts: all
+  become: yes
+  tasks:
+    - name: Copiar script de backup
+      copy:
+        src: templates/backup.sh
+        dest: /usr/local/bin/backup.sh
+        mode: '0755'
 
-- name: Copiar script de restauración
-  copy:
-    src: templates/restore.sh
-    dest: /usr/local/bin/restore.sh
-    mode: '0755'
+    - name: Copiar script de restauración
+      copy:
+        src: templates/restore.sh
+        dest: /usr/local/bin/restore.sh
+        mode: '0755'
 
 - name: Programar el backup diario
-  cron:
-    name: "Backup de base de datos PostgreSQL"
-    minute: "0"
-    hour: "2"
-    job: "/usr/local/bin/backup.sh"
+  hosts: all
+  become: yes
+  tasks:
+    - name: Programar el backup de base de datos PostgreSQL
+      cron:
+        name: "Backup de base de datos PostgreSQL"
+        minute: "0"
+        hour: "2"
+        job: "/usr/local/bin/backup.sh"
 
 - name: Instalar Keepalived
-  apt:
-    name: keepalived
-    state: present
+  hosts: all
+  become: yes
+  tasks:
+    - name: Instalar Keepalived
+      apt:
+        name: keepalived
+        state: present
+
+    - name: Habilitar el servicio Keepalived
+      systemd:
+        name: keepalived
+        enabled: yes
 
 - name: Configurar Keepalived para alta disponibilidad
   hosts: all
@@ -92,7 +109,6 @@
     priority: 101
     auth_pass: 1111
     virtual_ip: 192.168.1.100
-
   tasks:
     - name: Copiar el archivo de configuración keepalived.conf desde la plantilla
       template:
@@ -101,5 +117,3 @@
         mode: '0644'
       notify:
         - Reiniciar Keepalived
-    
-  

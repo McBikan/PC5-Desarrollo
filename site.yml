@@ -21,3 +21,5 @@
   handlers:
     - import_tasks: handlers/ejercicio2/main.yml
     - import_tasks: handlers/ejercicio4/main.yml
+    - import_tasks: handlers/ejercicio5/main.yml
+    - import_tasks: handlers/ejercicio6/main.yml

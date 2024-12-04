@@ -18,6 +18,9 @@ Vagrant.configure("2") do |config|
   # using a specific IP.
   config.vm.network "private_network", ip: "192.168.0.40"
 
+  #Aumento el tiempo de espera de creación de la máquina
+  config.vm.boot_timeout = 1200
+
   # Configure the provider (VirtualBox)
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:

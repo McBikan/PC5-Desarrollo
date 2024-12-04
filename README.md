@@ -14,3 +14,7 @@ https://kinsta.com/es/blog/postgresql-replicacion/
 Failover con Keepalived:
 https://www.sysadminsdecuba.com/2022/08/keepalived-como-failover-para-un-solo-ip-publico/
 https://www.redhat.com/en/blog/advanced-keepalived
+
+Ejercicio 6:
+AppArmor en Ngix en Ubuntu:
+https://www.digitalocean.com/community/tutorials/how-to-create-an-apparmor-profile-for-nginx-on-ubuntu-14-04
