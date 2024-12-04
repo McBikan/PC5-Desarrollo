@@ -33,7 +33,25 @@
     state: started
     enabled: yes
 
-- name: Actualizar la lista de paquetes
+- name: Descargar y añadir la clave GPG de Grafana
+  ansible.builtin.shell: |
+    curl -fsSL https://apt.grafana.com/gpg.key | gpg --dearmor -o /usr/share/keyrings/grafana-archive-keyring.gpg
+  args:
+    warn: false
+  register: result
+
+- name: Validar si la clave GPG fue añadida correctamente
+  ansible.builtin.fail:
+    msg: "Fallo al añadir la clave GPG de Grafana"
+  when: result.rc != 0
+
+- name: Agregar el repositorio oficial de Grafana
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/grafana.list
+    content: "deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://packages.grafana.com/oss/deb stable main"
+    notify: Actualizar apt
+
+- name: Actualizar lista de paquetes
   apt:
     update_cache: yes
 

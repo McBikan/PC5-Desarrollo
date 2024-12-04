@@ -1,0 +1,78 @@
+- name: Instalar dependencias para Docker
+  apt:
+    name: 
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    state: present
+
+- name: Agregar clave GPG de Docker
+  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+- name: Agregar repositorio de Docker
+  apt_repository:
+    repo: deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Instalar Docker
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+
+- name: Construir imagen Docker
+  docker_image:
+    build:
+      path: "{{ playbook_dir }}/path/to/Dockerfile"
+    name: flask_app
+    tag: latest
+
+- name: Iniciar contenedor 1
+  docker_container:
+    name: flask_app_1
+    image: flask_app:latest
+    ports:
+      - "5000:5000"
+    state: started
+
+- name: Iniciar contenedor 2
+  docker_container:
+    name: flask_app_2
+    image: flask_app:latest
+    ports:
+      - "5001:5000"
+    state: started
+
+- name: Configurar balanceo de carga en Nginx
+  copy:
+    dest: /etc/nginx/sites-available/default
+    content: |
+      upstream flask_app {
+          server 127.0.0.1:5000;
+          server 127.0.0.1:5001;
+      }
+
+      server {
+          listen 80;
+
+          location / {
+              proxy_pass http://flask_app;
+          }
+      }
+  notify:
+    - Reiniciar Nginx
+
+- name: Configurar limpieza automática de contenedores parados
+  cron:
+    name: "Limpiar contenedores antiguos"
+    minute: "0"
+    hour: "0"
+    job: "docker container prune -f"
+
+- name: Verificar estado de la aplicación
+  uri:
+    url: http://127.0.0.1/
+    status_code: 200
