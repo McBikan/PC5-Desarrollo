@@ -1,5 +1,5 @@
 ---
-- name: Aprovisionar VM con seguridad SSH
+- name: Levantando todo lo necesario para la PC5
   hosts: all
   become: yes
   become_method: sudo

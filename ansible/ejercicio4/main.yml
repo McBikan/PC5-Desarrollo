@@ -35,7 +35,7 @@
 
 - name: Descargar y añadir la clave GPG de Grafana
   ansible.builtin.shell: |
-    curl -fsSL https://apt.grafana.com/gpg.key | gpg --dearmor -o /usr/share/keyrings/grafana-archive-keyring.gpg
+    curl -fsSL https://apt.grafana.com/gpg.key | tee /usr/share/keyrings/grafana-archive-keyring.gpg > /dev/null
   args:
     warn: false
   register: result
@@ -45,23 +45,25 @@
     msg: "Fallo al añadir la clave GPG de Grafana"
   when: result.rc != 0
 
-- name: Agregar el repositorio oficial de Grafana
-  ansible.builtin.copy:
-    dest: /etc/apt/sources.list.d/grafana.list
-    content: "deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://packages.grafana.com/oss/deb stable main"
-    notify: Actualizar apt
+#- name: Agregar el repositorio oficial de Grafana
+#  ansible.builtin.copy:
+#    dest: /etc/apt/sources.list.d/grafana.list
+#    content: "deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://packages.grafana.com/oss/deb stable main"
+#    create: yes
+#    validate: 'apt-get -q update'
+#  notify: Actualizar apt
 
 - name: Actualizar lista de paquetes
   apt:
     update_cache: yes
 
-- name: Instalar Grafana
-  apt:
-    name: grafana
-    state: present
+#- name: Instalar Grafana
+#  apt:
+#   name: grafana
+#   state: present
 
-- name: Iniciar y habilitar el servicio Grafana
-  systemd:
-    name: grafana-server
-    state: started
-    enabled: yes
+#- name: Iniciar y habilitar el servicio Grafana
+#  systemd:
+#    name: grafana-server
+#    state: started
+#    enabled: yes

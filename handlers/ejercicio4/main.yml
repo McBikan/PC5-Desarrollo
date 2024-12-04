@@ -3,3 +3,7 @@
   systemd:
     name: prometheus
     state: restarted
+
+- name: Actualizar apt
+  apt:
+    update_cache: yes

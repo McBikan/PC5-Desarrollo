@@ -1,0 +1,22 @@
+---
+- name: Instalar Docker Compose
+  apt:
+    name: docker-compose
+    state: present
+  when: ansible_os_family == "Ubuntu"
+
+- name: Copiar docker-compose.yml al servidor
+  copy:
+    src: templates/docker-compose.yml.j2
+    dest: /etc/docker-compose.yml
+
+- name: Levantar los servicios con Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: /etc
+
+- name: Manejar actualizaciones y reinicios
+  command: docker-compose up -d --force-recreate
+  args:
+    chdir: /etc
+  when: ansible_check_mode == False
