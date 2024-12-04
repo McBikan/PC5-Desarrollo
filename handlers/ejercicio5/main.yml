@@ -1,4 +1,4 @@
-- name: Reiniciar el servicio de Keepalived
+- name: Reiniciar Keepalived
   systemd:
     name: keepalived
     state: restarted

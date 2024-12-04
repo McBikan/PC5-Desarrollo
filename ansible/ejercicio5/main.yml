@@ -1,65 +1,64 @@
 ---
-- name: Configurar PostgreSQL Master y Slave
-  hosts: postgresql_servers
+- name: Configurar PostgreSQL Master
+  hosts: master
   become: yes
   tasks:
-    - name: Instalar PostgreSQL en el nodo Master
-      apt:
-        name: postgresql
-        state: present
-
-    - name: Configurar el archivo postgresql.conf en el nodo Master
+    - name: Configurar archivo postgresql.conf para escuchar en todas las interfaces
       lineinfile:
         path: /etc/postgresql/12/main/postgresql.conf
         regexp: '^#?listen_addresses'
         line: "listen_addresses = '*'"
 
-    - name: Habilitar la replicación en el nodo Master
+    - name: Habilitar replicación en PostgreSQL
       lineinfile:
         path: /etc/postgresql/12/main/pg_hba.conf
         regexp: '^#?host replication'
         line: "host replication all 0.0.0.0/0 md5"
-
+        
     - name: Reiniciar PostgreSQL en el nodo Master
       systemd:
         name: postgresql
         state: restarted
 
+- name: Configurar PostgreSQL Slave
+  hosts: slave
+  become: yes
+  tasks:
     - name: Instalar PostgreSQL en el nodo Slave
       apt:
         name: postgresql
         state: present
 
-    - name: Configurar el archivo postgresql.conf en el nodo Slave
+    - name: Configurar archivo postgresql.conf para escuchar en todas las interfaces
       lineinfile:
         path: /etc/postgresql/12/main/postgresql.conf
         regexp: '^#?listen_addresses'
         line: "listen_addresses = '*'"
 
-    - name: Configurar la replicación en el nodo Slave
+    - name: Configurar replicación en PostgreSQL en el nodo Slave
       lineinfile:
         path: /etc/postgresql/12/main/pg_hba.conf
         regexp: '^#?host replication'
         line: "host replication all 0.0.0.0/0 md5"
 
-    - name: Clonar el nodo Slave desde el nodo Master
+    - name: Clonar el nodo Slave desde el Master
       command: >
         pg_basebackup -h {{ master_host }} -D /var/lib/postgresql/12/main -U postgres -v -P --wal-method=stream
 
-    - name: Crear el archivo recovery.conf en el nodo Slave
+    - name: Crear archivo recovery.conf en el nodo Slave
       copy:
         dest: /var/lib/postgresql/12/main/recovery.conf
         content: |
           standby_mode = 'on'
           primary_conninfo = 'host={{ master_host }} port=5432 user=postgres password={{ master_password }}'
           trigger_file = '/tmp/failover.trigger'
-    
+
     - name: Reiniciar PostgreSQL en el nodo Slave
       systemd:
         name: postgresql
         state: restarted
 
-- name: Copiar scripts de backup y restauración
+- name: Copiar Scripts de Backup y Restauración
   hosts: all
   become: yes
   tasks:
@@ -79,7 +78,7 @@
   hosts: all
   become: yes
   tasks:
-    - name: Programar el backup de base de datos PostgreSQL
+    - name: Programar backup de base de datos PostgreSQL
       cron:
         name: "Backup de base de datos PostgreSQL"
         minute: "0"
@@ -95,7 +94,7 @@
         name: keepalived
         state: present
 
-    - name: Habilitar el servicio Keepalived
+    - name: Habilitar servicio Keepalived
       systemd:
         name: keepalived
         enabled: yes
@@ -110,7 +109,7 @@
     auth_pass: 1111
     virtual_ip: 192.168.1.100
   tasks:
-    - name: Copiar el archivo de configuración keepalived.conf desde la plantilla
+    - name: Copiar archivo de configuración keepalived.conf desde plantilla
       template:
         src: keepalived.conf.j2
         dest: /etc/keepalived/keepalived.conf
